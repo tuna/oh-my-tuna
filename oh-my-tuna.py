@@ -54,7 +54,7 @@ def user_prompt():
     global always_yes
     if always_yes:
         return True
-    
+
     ans = input('Do you wish to proceed(y/n/a):')
     if ans == 'a':
         always_yes = True
@@ -79,32 +79,37 @@ def ask_if_change(name, expected, command_read, command_set):
         return True
 
 
-def get_os_name():
-        os_release = sh('cat /etc/os-release')
-        if not os_release:
-            return None
-        match = re.findall(os_release_regex, os_release)
-        if len(match) != 1:
-            return None
-        return match[0]
+def get_linux_distro():
+    os_release = sh('cat /etc/os-release')
+    if not os_release:
+        return None
+    match = re.findall(os_release_regex, os_release)
+    if len(match) != 1:
+        return None
+    return match[0]
 
 
 class Base(object):
     """
     Name of this mirror/module
     """
+    @staticmethod
     def name():
         raise NotImplementedError
-    
+
     """
     Returns whether this mirror is applicable
     """
+
+    @staticmethod
     def is_applicable():
         return False
 
     """
     Returns whether this mirror is already up
     """
+
+    @staticmethod
     def is_online():
         raise NotImplementedError
 
@@ -113,6 +118,8 @@ class Base(object):
     Returns True if this operation is completed, False otherwise
     Caller should never invoke this method when is_online returns True
     """
+
+    @staticmethod
     def up():
         raise NotImplementedError
 
@@ -121,28 +128,35 @@ class Base(object):
     Returns True if this operation is completed, False otherwise
     Caller should never invoke this method when is_online returns False
     """
+
+    @staticmethod
     def down():
         raise NotImplementedError
 
     """
     Print a log entry with the name of this mirror/module
     """
+
     @classmethod
     def log(cls, msg):
         print('[%s]: %s' % (cls.name(), msg))
 
 
 class ArchLinux(Base):
+    @staticmethod
     def name():
         return 'Arch Linux'
 
+    @staticmethod
     def is_applicable():
-        return os.path.isfile('/etc/pacman.d/mirrorlist') and get_os_name() == 'arch'
+        return os.path.isfile(
+            '/etc/pacman.d/mirrorlist') and get_linux_distro() == 'arch'
 
+    @staticmethod
     def is_online():
         mirror_re = re.compile(
-                r" *Server *= *(http|https)://%s/archlinux/\$repo/os/\$path\n" % mirror_root,
-                re.M)
+            r" *Server *= *(http|https)://%s/archlinux/\$repo/os/\$path\n" %
+            mirror_root, re.M)
         ml = open('/etc/pacman.d/mirrorlist', 'r')
         lines = ml.readlines()
         result = map(lambda l: re.match(mirror_re, l), lines)
@@ -150,15 +164,18 @@ class ArchLinux(Base):
         ml.close()
         return result
 
+    @staticmethod
     def up():
         # Match commented or not
         mirror_re = re.compile(
-                r" *(# *)?Server *= *(http|https)://%s/archlinux/\$repo/os/\$path\n" % mirror_root,
-                re.M)
+            r" *(# *)?Server *= *(http|https)://%s/archlinux/\$repo/os/\$path\n"
+            % mirror_root, re.M)
         banner = '# Generated and managed by the awesome oh-my-tuna\n'
         target = "Server = https://%s/archlinux/$repo/os/$path\n\n" % mirror_root
 
-        print('This operation will insert the following line into the beginning of your pacman mirrorlist:\n%s' % target[:-2])
+        print(
+            'This operation will insert the following line into the beginning of your pacman mirrorlist:\n%s'
+            % target[:-2])
         if not user_prompt():
             return False
 
@@ -179,7 +196,6 @@ class ArchLinux(Base):
         while k < len(lines) and lines[k] == '\n':
             k += 1
 
-
         ml.close()
         ml = open('/etc/pacman.d/mirrorlist', 'w')
         # Add target
@@ -189,37 +205,50 @@ class ArchLinux(Base):
         ml.close()
         return True
 
+    @staticmethod
     def down():
-        print('This action will comment out TUNA mirrors from your pacman mirrorlist, if there is any.')
+        print(
+            'This action will comment out TUNA mirrors from your pacman mirrorlist, if there is any.'
+        )
         if not user_prompt():
             return False
 
         # Simply remove all matched lines
         mirror_re = re.compile(
-                r" *Server *= *(http|https)://%s/archlinux/\$repo/os/\$path\n" % mirror_root,
-                re.M)
+            r" *Server *= *(http|https)://%s/archlinux/\$repo/os/\$path\n" %
+            mirror_root, re.M)
 
         ml = open('/etc/pacman.d/mirrorlist', 'r')
         lines = ml.readlines()
-        lines = list(map(lambda l: l if re.match(mirror_re, l) is None else '# ' + l, lines))
+        lines = list(
+            map(lambda l: l if re.match(mirror_re, l) is None else '# ' + l,
+                lines))
         ml.close()
         ml = open('/etc/pacman.d/mirrorlist', 'w')
         ml.writelines(lines)
         ml.close()
-        return True 
+        return True
+
 
 class Homebrew(Base):
+    @staticmethod
     def name():
         return 'Homebrew'
-    
+
+    @staticmethod
     def is_applicable():
         return sh('brew --repo') is not None
 
+    @staticmethod
     def is_online():
         repo = sh('brew --repo')
-        return repo == 'https://%s/git/homebrew/brew.git' % mirror_root
+        with cd(repo):
+            return sh('git remote get-url origin'
+                      ) == 'https://%s/git/homebrew/brew.git' % mirror_root
 
+    @staticmethod
     def up():
+        repo = sh('brew --repo')
         with cd(repo):
             ask_if_change(
                 'Homebrew repo',
@@ -239,16 +268,23 @@ class Homebrew(Base):
                         % (mirror_root, tap))
         return True
 
+
 class CTAN(Base):
+    @staticmethod
     def name():
         return 'CTAN'
 
+    @staticmethod
     def is_applicable():
         return sh('tlmgr --version') is not None
 
+    @staticmethod
     def is_online():
-        return sh('tlmgr option repository') == 'Default package repository (repository): https://mirrors.tuna.tsinghua.edu.cn/CTAN/systems/texlive/tlnet'
+        return sh(
+            'tlmgr option repository'
+        ) == 'Default package repository (repository): https://mirrors.tuna.tsinghua.edu.cn/CTAN/systems/texlive/tlnet'
 
+    @staticmethod
     def up():
         return ask_if_change(
             'CTAN mirror',
@@ -257,12 +293,19 @@ class CTAN(Base):
             'tlmgr option repository https://mirrors.tuna.tsinghua.edu.cn/CTAN/systems/texlive/tlnet'
         )
 
+
 MODULES = [ArchLinux, Homebrew, CTAN]
+
 
 def main():
     parser = argparse.ArgumentParser(
         description='Use TUNA mirrors everywhere when applicable')
-    parser.add_argument('subcommand', nargs='?', metavar='SUBCOMMAND', choices=['up', 'down', 'status'], default='up')
+    parser.add_argument(
+        'subcommand',
+        nargs='?',
+        metavar='SUBCOMMAND',
+        choices=['up', 'down', 'status'],
+        default='up')
     parser.add_argument(
         '-v', '--verbose', help='verbose output', action='store_true')
     parser.add_argument(
@@ -270,7 +313,6 @@ def main():
         '--yes',
         help='always answer yes to questions',
         action='store_true')
-
 
     args = parser.parse_args()
     global verbose
@@ -290,7 +332,9 @@ def main():
                         else:
                             m.log('Mirror has been activated')
                     except NotImplementedError:
-                        m.log('Mirror doesn\'t support activation. Please activate manually')
+                        m.log(
+                            'Mirror doesn\'t support activation. Please activate manually'
+                        )
 
     if args.subcommand == 'down':
         for m in MODULES:
@@ -304,7 +348,9 @@ def main():
                         else:
                             m.log('Mirror has been deactivated')
                     except NotImplementedError:
-                        m.log('Mirror doesn\'t support deactivation. Please deactivate manually')
+                        m.log(
+                            'Mirror doesn\'t support deactivation. Please deactivate manually'
+                        )
 
     if args.subcommand == 'status':
         for m in MODULES:
