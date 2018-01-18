@@ -18,7 +18,6 @@
 
 import subprocess
 import os
-import sys
 import argparse
 from six.moves import input
 from contextlib import contextmanager
@@ -79,6 +78,16 @@ def homebrew():
                 'git remote get-url origin',
                 'git remote set-url origin https://%s/git/homebrew/brew.git' %
                 mirror_root)
+        for tap in ('homebrew-core', 'homebrew-python', 'homebrew-science'):
+            tap_path = '%s/Library/Taps/homebrew/%s' % (repo, tap)
+            if os.path.isdir(tap_path):
+                with cd(tap_path):
+                    ask_if_change(
+                        'Homebrew tap %s' % tap,
+                        'https://%s/git/homebrew/%s.git' % (mirror_root, tap),
+                        'git remote get-url origin',
+                        'git remote set-url origin https://%s/git/homebrew/%s.git'
+                        % (mirror_root, tap))
 
 
 def main():
