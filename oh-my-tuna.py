@@ -90,6 +90,17 @@ def homebrew():
                         % (mirror_root, tap))
 
 
+def ctan():
+    tlmgr = sh('tlmgr --version')
+    if tlmgr:
+        ask_if_change(
+            'CTAN mirror',
+            'Default package repository (repository): http://mirrors.tuna.tsinghua.edu.cn/CTAN/systems/texlive/tlnet',
+            'tlmgr option repository',
+            'tlmgr option repository https://mirrors.tuna.tsinghua.edu.cn/CTAN/systems/texlive/tlnet'
+        )
+
+
 def main():
     parser = argparse.ArgumentParser(
         description='Use TUNA mirrors everywhere when applicable')
@@ -107,6 +118,7 @@ def main():
     always_yes = args.yes
 
     homebrew()
+    ctan()
 
 
 if __name__ == "__main__":
