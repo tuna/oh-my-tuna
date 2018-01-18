@@ -240,19 +240,19 @@ class Homebrew(Base):
         return True
 
 class CTAN(Base):
-    def nam():
+    def name():
         return 'CTAN'
 
     def is_applicable():
         return sh('tlmgr --version') is not None
 
     def is_online():
-        return sh('tlmgr option repository') == 'Default package repository (repository): http://mirrors.tuna.tsinghua.edu.cn/CTAN/systems/texlive/tlnet'
+        return sh('tlmgr option repository') == 'Default package repository (repository): https://mirrors.tuna.tsinghua.edu.cn/CTAN/systems/texlive/tlnet'
 
     def up():
         return ask_if_change(
             'CTAN mirror',
-            'Default package repository (repository): http://mirrors.tuna.tsinghua.edu.cn/CTAN/systems/texlive/tlnet',
+            'Default package repository (repository): https://mirrors.tuna.tsinghua.edu.cn/CTAN/systems/texlive/tlnet',
             'tlmgr option repository',
             'tlmgr option repository https://mirrors.tuna.tsinghua.edu.cn/CTAN/systems/texlive/tlnet'
         )
