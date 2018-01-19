@@ -21,6 +21,7 @@ import os
 import argparse
 import re
 from six.moves import input
+import platform
 from contextlib import contextmanager
 
 mirror_root = "mirrors.tuna.tsinghua.edu.cn"
@@ -44,8 +45,9 @@ def sh(command):
     try:
         if verbose:
             print('$ %s' % command)
-        return subprocess.check_output(
-            command.split()).decode('utf-8').rstrip()
+        if isinstance(command, str):
+            command = command.split()
+        return subprocess.check_output(command).decode('utf-8').rstrip()
     except Exception as e:
         return None
 
@@ -87,6 +89,38 @@ def get_linux_distro():
     if len(match) != 1:
         return None
     return match[0]
+
+
+def set_env(key, value):
+    shell = os.environ.get('SHELL').split('/')[-1]
+    if shell == 'bash' or shell == 'sh':
+        with open(os.path.expanduser('~/.profile'), 'a') as f:
+            f.write('export %s=%s\n' % (key, value))
+    elif shell == 'zsh':
+        with open(os.path.expanduser('~/.zprofile'), 'a') as f:
+            f.write('export %s=%s\n' % (key, value))
+    else:
+        print('Please set %s=%s' % (key, value))
+
+
+def remove_env(key):
+    shell = os.environ.get('SHELL').split('/')[-1]
+    if shell == 'bash' or shell == 'sh':
+        pattern = "^export %s=" % key
+        profile = "~/.profile"
+    elif shell == 'zsh':
+        pattern = "^export %s=" % key
+        profile = "~/.zprofile"
+    if pattern:
+        profile = os.path.expanduser(profile)
+        if platform.system() == 'Darwin': # TODO: More BSD systems
+            sed = ['sed', '-i', "", "/%s/d" % pattern, profile]
+        else:
+            sed = ['sed', '-i', "/%s/d" % pattern, profile]
+        return sh(sed)
+    else:
+        print('Please remove environment variable %s' % key)
+
 
 
 class Base(object):
@@ -244,8 +278,12 @@ class Homebrew(Base):
     def is_online():
         repo = sh('brew --repo')
         with cd(repo):
-            return sh('git remote get-url origin'
+            repo_online = sh('git remote get-url origin'
                       ) == 'https://%s/git/homebrew/brew.git' % mirror_root
+        if repo_online:
+            return os.environ.get('HOMEBREW_BOTTLE_DOMAIN') == 'https://%s/homebrew-bottles' % mirror_root
+        return False
+
 
     @staticmethod
     def up():
@@ -267,6 +305,7 @@ class Homebrew(Base):
                         'git remote get-url origin',
                         'git remote set-url origin https://%s/git/homebrew/%s.git'
                         % (mirror_root, tap))
+        set_env('HOMEBREW_BOTTLE_DOMAIN', 'https://%s/homebrew-bottles' % mirror_root)
         return True
 
     @staticmethod
@@ -282,8 +321,9 @@ class Homebrew(Base):
                     with cd(tap_path):
                         sh('git remote set-url origin https://github.com/homebrew/%s.git'
                            % tap)
-            return sh('git remote get-url origin'
+            sh('git remote get-url origin'
                       ) == 'https://github.com/homebrew/brew.git'
+        return remove_env('HOMEBREW_BOTTLE_DOMAIN')
 
 
 class CTAN(Base):
