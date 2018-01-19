@@ -93,6 +93,7 @@ class Base(object):
     """
     Name of this mirror/module
     """
+
     @staticmethod
     def name():
         raise NotImplementedError
@@ -267,6 +268,22 @@ class Homebrew(Base):
                         'git remote set-url origin https://%s/git/homebrew/%s.git'
                         % (mirror_root, tap))
         return True
+
+    @staticmethod
+    def down():
+        repo = sh('brew --repo')
+        with cd(repo):
+            sh('git remote set-url origin https://github.com/homebrew/brew.git'
+               )
+            for tap in ('homebrew-core', 'homebrew-python',
+                        'homebrew-science'):
+                tap_path = '%s/Library/Taps/homebrew/%s' % (repo, tap)
+                if os.path.isdir(tap_path):
+                    with cd(tap_path):
+                        sh('git remote set-url origin https://github.com/homebrew/%s.git'
+                           % tap)
+            return sh('git remote get-url origin'
+                      ) == 'https://github.com/homebrew/brew.git'
 
 
 class CTAN(Base):
