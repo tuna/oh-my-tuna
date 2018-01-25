@@ -268,7 +268,7 @@ class Pypi(Base):
                     config.remove_option('global', 'index-url')
                 with open(path, 'w') as f:
                     config.write(f)
-            except configparser.NoOptionError, configparser.NoSectionError:
+            except (configparser.NoOptionError, configparser.NoSectionError):
                 pass
         return True
 
