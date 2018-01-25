@@ -20,11 +20,12 @@ import subprocess
 import os
 import argparse
 import re
-from six.moves import input
+from six.moves import input, configparser
 import platform
 from contextlib import contextmanager
 
 mirror_root = "mirrors.tuna.tsinghua.edu.cn"
+host_name = "tuna.tsinghua.edu.cn"
 always_yes = False
 verbose = False
 
@@ -175,6 +176,77 @@ class Base(object):
     @classmethod
     def log(cls, msg):
         print('[%s]: %s' % (cls.name(), msg))
+
+
+class Pypi(Base):
+    mirror_url = 'https://pypi.%s/simple' % host_name
+
+    """
+    Reference: https://pip.pypa.io/en/stable/user_guide/#configuration
+    """
+    @staticmethod
+    def config_files():
+        system = platform.system()
+        if system == 'Darwin':
+            return ('$HOME/Library/Application Support/pip/pip.conf', '$HOME/.pip/pip.conf')
+        elif system == 'Windows':
+            return ('%APPDATA%\pip\pip.ini', '~\pip\pip.ini')
+        elif system == 'Linux':
+            return ('$HOME/.config/pip/pip.conf', '$HOME/.pip/pip.conf')
+
+
+    @staticmethod
+    def name():
+        return "pypi"
+
+
+    @staticmethod
+    def is_applicable():
+        return sh('pip') is not None or sh('pip3') is not None
+
+
+    @staticmethod
+    def is_online():
+        pattern = re.compile(r' *index-url *= *%s' % Pypi.mirror_url)
+        config_files = Pypi.config_files()
+        for conf_file in config_files:
+            if not os.path.exists(os.path.expandvars(conf_file)):
+                continue
+            with open(os.path.expandvars(conf_file)) as f:
+                for line in f:
+                    if pattern.match(line):
+                        return True
+        return False
+
+
+    @staticmethod
+    def up():
+        config_file = os.path.expandvars(Pypi.config_files()[0])
+        config = configparser.ConfigParser()
+        if os.path.exists(config_file):
+            config.read(config_file)
+        config.set('global', 'index-url', Pypi.mirror_url)
+        with open(config_file, 'w') as f:
+            config.write(f)
+        return True
+
+
+    @staticmethod
+    def down():
+        config_files = map(os.path.expandvars, Pypi.config_files())
+        config = configparser.ConfigParser()
+        for path in config_files:
+            if not os.path.exists(path):
+                continue
+            config.read(path)
+            try:
+                if config.get('global', 'index-url') == Pypi.mirror_url:
+                    config.remove_option('global', 'index-url')
+                with open(path, 'w') as f:
+                    config.write(f)
+            except configparser.NoOptionError:
+                pass
+        return True
 
 
 class ArchLinux(Base):
@@ -351,7 +423,7 @@ class CTAN(Base):
         )
 
 
-MODULES = [ArchLinux, Homebrew, CTAN]
+MODULES = [ArchLinux, Homebrew, CTAN, Pypi]
 
 
 def main():
