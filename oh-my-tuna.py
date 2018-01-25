@@ -174,8 +174,28 @@ class Base(object):
     """
 
     @classmethod
-    def log(cls, msg):
-        print('[%s]: %s' % (cls.name(), msg))
+    def log(cls, msg, level='i'):
+        levels = "viodwe" # verbose, info, ok, debug, warning, error
+        assert level in levels
+
+        global verbose
+        if level == 'v' and verbose:
+            return
+
+        color_prefix = {
+            'v': '',
+            'i': '',
+            'o': '\033[32m',
+            'd': '\033[34m',
+            'w': '\033[33m',
+            'e': '\033[31m'
+        }
+        if color_prefix[level]:
+            color_suffix = '\033[0m'
+        else:
+            color_suffix = ''
+
+        print('%s[%s]: %s%s' % (color_prefix[level], cls.name(), msg, color_suffix))
 
 
 class Pypi(Base):
@@ -509,13 +529,13 @@ def main():
                     try:
                         result = m.up()
                         if not result:
-                            m.log('Operation cancled')
+                            m.log('Operation cancled', 'w')
                         else:
-                            m.log('Mirror has been activated')
+                            m.log('Mirror has been activated', 'o')
                     except NotImplementedError:
                         m.log(
                             'Mirror doesn\'t support activation. Please activate manually'
-                        )
+                        , 'e')
 
     if args.subcommand == 'down':
         for m in MODULES:
@@ -525,19 +545,19 @@ def main():
                     try:
                         result = m.down()
                         if not result:
-                            m.log('Operation cancled')
+                            m.log('Operation cancled', 'w')
                         else:
-                            m.log('Mirror has been deactivated')
+                            m.log('Mirror has been deactivated', 'o')
                     except NotImplementedError:
                         m.log(
                             'Mirror doesn\'t support deactivation. Please deactivate manually'
-                        )
+                        , 'e')
 
     if args.subcommand == 'status':
         for m in MODULES:
             if m.is_applicable():
                 if m.is_online():
-                    m.log('Online')
+                    m.log('Online', 'o')
                 else:
                     m.log('Offline')
 
