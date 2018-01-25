@@ -118,9 +118,11 @@ def remove_env(key):
             sed = ['sed', '-i', "", "/%s/d" % pattern, profile]
         else:
             sed = ['sed', '-i', "/%s/d" % pattern, profile]
-        return sh(sed)
+        sh(sed)
+        return True
     else:
         print('Please remove environment variable %s' % key)
+        return False
 
 
 
