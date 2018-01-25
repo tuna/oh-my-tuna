@@ -497,7 +497,47 @@ class Ubuntu(Base):
         return True
 
 
-MODULES = [ArchLinux, Homebrew, CTAN, Ubuntu, Pypi]
+class Anaconda(Base):
+    url_free = 'https://%s/anaconda/pkgs/free/' % mirror_root
+    url_main = 'https://%s/anaconda/pkgs/main/' % mirror_root
+
+
+    @staticmethod
+    def name():
+        return "Anaconda"
+
+
+    @staticmethod
+    def is_applicable():
+        return sh('conda -V') is not None
+
+
+    @staticmethod
+    def is_online():
+        channels = sh('conda config --get channels').split('\n')
+        in_channels = 0
+        for line in channels:
+            if Anaconda.url_free in line:
+                in_channels += 1
+            elif Anaconda.url_main in line:
+                in_channels += 1
+        return in_channels == 2
+
+
+    @staticmethod
+    def up():
+        sh ("conda config --add channels %s" % Anaconda.url_free)
+        sh ("conda config --add channels %s" % Anaconda.url_main)
+        return True
+
+    @staticmethod
+    def down():
+        sh ("conda config --remove channels %s" % Anaconda.url_free)
+        sh ("conda config --remove channels %s" % Anaconda.url_main)
+        return True
+
+
+MODULES = [ArchLinux, Homebrew, CTAN, Ubuntu, Pypi, Anaconda]
 
 
 def main():
