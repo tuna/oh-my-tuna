@@ -20,9 +20,19 @@ import subprocess
 import os
 import argparse
 import re
-from six.moves import input, configparser
 import platform
 from contextlib import contextmanager
+
+try:
+   input = raw_input
+except NameError:
+   pass
+
+try:
+    import configparser
+except ImportError:
+    import ConfigParser as configparser
+
 
 mirror_root = "mirrors.tuna.tsinghua.edu.cn"
 host_name = "tuna.tsinghua.edu.cn"
