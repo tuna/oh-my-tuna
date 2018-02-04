@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset=UTF-8>
+    <meta name="viewport" content="initial-scale=1, user-scalable=no">
+    <title>Oh My TUNA</title>
+    <link href="https://fonts.proxy.ustclug.org/css?family=Open+Sans:300,400,700i|Source+Code+Pro:400,700" rel="stylesheet">
+    <style>
+      html {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+      }
+      body {
+        min-height: 100vh;
+        min-height: 100%;
+        width: 100vw;
+        width: 100%;
+        box-sizing: border-box;
+
+        padding: 100px 0;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #073642;
+        flex-direction: column;
+
+        user-select: none;
+      }
+
+      a {
+        text-decoration: none;
+        font-size: 0;
+      }
+
+      .brand {
+        color: #586e75;
+        font-size: 36px;
+        font-weight: 300;
+        line-height: 60px;
+        margin-bottom: 40px;
+        font-family: 'Open Sans', sans-serif;
+      }
+
+      .brand-hl {
+        font-weight: 700;
+        font-style: italic;
+      }
+
+      .term-group {
+        position: relative;
+      }
+
+      .term {
+        width: 500px;
+        padding-top: 10px;
+        border-radius: 2px;
+        background: #002b36;
+        position: relative;
+        z-index: 10;
+
+        box-shadow: rgba(0,0,0,.3) 0 4px 12px;
+
+        user-select: text;
+      }
+
+      .term-content {
+        padding: 10px 20px;
+        font-family: 'Source Code Pro', monospace;
+        color: #93a1a1;
+        font-size: 16px;
+        font-weight: 400;
+      }
+
+      .term-content strong {
+        font-weight: 700;
+      }
+
+      .term-row {
+        padding-left: 20px;
+        position: relative;
+        margin: 10px 0;
+      }
+
+      .term-row::before {
+        content: '>';
+        padding-right: 10px;
+        color: #586e75;
+        position: absolute;
+        left: 0;
+      }
+
+      .exit-btn {
+        width: 12px;
+        height: 12px;
+        position: absolute;
+        background: #dc322f;
+        border: #821E1C 1px solid;
+        box-sizing: border-box;
+        border-radius: 50%;
+
+        right: 12px;
+        top: 12px;
+        
+        -webkit-transition: background 0.2s ease, -webkit-filter 1s ease;
+        -moz-transition: background 0.2s ease, -moz-filter 1s ease;
+        -o-transition: background 0.2s ease, -o-filter 1s ease;
+        transition: background 0.2s ease, filter 1s ease;
+
+        cursor: pointer;
+      }
+
+      .exit-btn:hover {
+        background: #B52927;
+        border: #821E1C 1px solid;
+      }
+
+      .exit-btn.not-exiting {
+        -webkit-filter: hue-rotate(120deg);
+        -moz-filter: hue-rotate(120deg);
+        -o-filter: hue-rotate(120deg);
+        filter: hue-rotate(120deg);
+      }
+
+      .copied-notif {
+        padding: 0 15px;
+        background: white;
+        position: absolute;
+        line-height: 36px;
+        left: 10px;
+        bottom: 8px;
+        border-radius: 0 0 2px 2px;
+        box-shadow: rgba(0,0,0,.3) 0 2px 6px;
+
+        font-family: 'Source Code Pro', monospace;
+        font-size: 12px;
+
+        color: #586e75;
+        background-color: #002b36;
+
+        transform: translateY(0);
+        transition: transform 0.2s ease;
+      }
+
+      .copied-notif.open {
+        transform: translateY(44px);
+      }
+
+      .btns {
+        margin-top: 10px;
+      }
+
+      .btns svg.btn {
+        width: 25px;
+        margin: 0 10px;
+        cursor: pointer;
+
+        fill: #586e75;
+
+        transition: fill 0.2s ease;
+      }
+
+      .btns svg.btn:hover {
+        fill: #93a1a1;
+      }
+    </style>
+
+    <script>
+      function copy() {
+        var contents = document.getElementsByClassName('term-row');
+        var s = window.getSelection();
+
+        if(s.rangeCount > 0) s.removeAllRanges();
+        s.setBaseAndExtent(contents[0], 0, contents[contents.length-1], 1);
+
+        document.execCommand('copy');
+
+        s.removeAllRanges();
+
+        notifCopied();
+      }
+
+      var timeoutId = null;
+
+      function notifCopied() {
+        if(timeoutId !== null)
+          clearTimeout(timeoutId);
+
+        var notifs = document.getElementsByClassName('copied-notif');
+        timeoutId = setTimeout(function() {
+          for(var i = 0; i<notifs.length; ++i)
+            notifs[i].classList.remove('open');
+          timeoutId = null;
+        }, 1000);
+
+        for(var i = 0; i<notifs.length; ++i)
+          notifs[i].classList.add('open');
+      }
+
+      var sayings = [
+        '<strong>^D</strong><br>It\'s super effective!',
+        'We got much functionalities, closing terminals is not one of them.',
+        '<strong>FUN FACT</strong>: This term is not real.',
+        function() {
+          console.log('No it isn\'t.');
+          return 'This one is on your <strong>*REAL*</strong> console.'
+        },
+        'Why are you still clicking on that virtual, boring, meaningless, pathetic red button?',
+        function() {
+          var btn = document.getElementsByClassName('exit-btn')[0];
+          btn.classList.add('not-exiting');
+
+          return 'Even after it turns green?';
+        },
+        'Now I\'m really impressed with your profession of killing time.',
+        'It\'s nowhere near the April Fools, why are you trying so hard to fool yourself?',
+        'OK, I\'m done with this. Just <strong>CLICK THE BUTTONS</strong> as much as you want.',
+        '<strong>^D</strong>',
+      ];
+
+      var nextSaying = 0;
+
+      function tryExit() {
+        var term = document.getElementsByClassName('term-content')[0];
+        var elem = document.createElement('div');
+        elem.classList.add('term-row');
+
+        var saying = sayings[nextSaying];
+        if(nextSaying < sayings.length - 1) nextSaying++;
+
+        if(typeof saying === 'function')
+          elem.innerHTML = saying();
+        else elem.innerHTML = saying;
+
+        term.appendChild(elem);
+      }
+    </script>
+  </head>
+  <body>
+    <div class="brand">Keep Calm &amp; Use <span class="brand-hl">TUNA</span></div>
+
+    <div class="term-group">
+      <div class="term">
+        <div class="exit-btn" onclick="tryExit()">
+        </div>
+        <div class="term-content">
+          <div class="term-row">
+            <strong>wget</strong> https://rawgit.com/tuna/oh-my-tuna/master/oh-my-tuna.py
+          </div>
+          <div class="term-row">
+            <strong>python</strong> oh-my-tuna.py
+          </div>
+        </div>
+      </div>
+
+      <div class="copied-notif">
+        Copied! 😘
+      </div>
+    </div>
+
+    <div class="btns">
+      <svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg" class="btn" onclick="copy()">
+          <path d="M0 0h24v24H0z" fill="none"/>
+          <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+      </svg>
+
+      <a href="https://github.com/tuna/oh-my-tuna" target="_blank">
+        <svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg" class="btn">
+            <path d="M0 0h24v24H0V0z" fill="none"/>
+            <path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/>
+        </svg>
+      </a>
+
+      <a href="oh-my-tuna.py" download="oh-my-tuna.py">
+        <svg fill="#FFFFFF" height="48" viewBox="0 0 24 24" width="48" xmlns="http://www.w3.org/2000/svg" class="btn">
+            <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+            <path d="M0 0h24v24H0z" fill="none"/>
+        </svg>
+      </a>
+    </div>
+  </body>
+</html>
