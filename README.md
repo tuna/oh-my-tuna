@@ -22,13 +22,14 @@ Coverage
  - Anaconda
  - Arch Linux
  - CTAN
+ - Debian
  - Homebrew
  - PyPI
  - Ubuntu
  
 TODO
 ========================
-- Debian
+
  
 
 License
