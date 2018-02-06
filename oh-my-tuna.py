@@ -511,7 +511,7 @@ class Anaconda(Base):
 
 
 class Debian(Base):
-    default_source = 'http://archive.ubuntu.com'
+    default_source = 'http://deb.debian.org'
 
     @staticmethod
     def build_template(mirror):
