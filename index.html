@@ -3,7 +3,7 @@
 <html>
   <head>
     <meta charset=UTF-8>
-    <meta name="viewport" content="initial-scale=1, user-scalable=no">
+    <meta name="viewport" content="initial-scale=0.9, user-scalable=no">
     <title>Oh My TUNA</title>
     <link href="https://fonts.proxy.ustclug.org/css?family=Open+Sans:300,400,700i|Source+Code+Pro:400,700" rel="stylesheet">
     <style>
@@ -57,7 +57,7 @@
 
       .term {
         width: 500px;
-        padding-top: 10px;
+        padding: 10px 0 5px 0;
         border-radius: 2px;
         background: #002b36;
         position: relative;
@@ -66,6 +66,23 @@
         box-shadow: rgba(0,0,0,.3) 0 4px 12px;
 
         user-select: text;
+      }
+
+      @media (max-width: 700px) {
+        .term {
+          width: 400px;
+        }
+      }
+
+      @media (max-width: 580px) {
+        .term {
+          width: 300px;
+        }
+
+        .brand {
+          font-size: 30px;
+          margin-bottom: 25px;
+        }
       }
 
       .term-content {
@@ -82,8 +99,10 @@
 
       .term-row {
         padding-left: 20px;
+        padding-right: 10px;
         position: relative;
         margin: 10px 0;
+        word-break: break-all;
       }
 
       .term-row::before {
@@ -171,11 +190,13 @@
 
     <script>
       function copy() {
-        var contents = document.getElementsByClassName('term-row');
+        var wrapper = document.getElementsByClassName('term-content')[0];
         var s = window.getSelection();
 
         if(s.rangeCount > 0) s.removeAllRanges();
-        s.setBaseAndExtent(contents[0], 0, contents[contents.length-1], 1);
+        var range = new Range();
+        range.selectNodeContents(wrapper);
+        s.addRange(range);
 
         document.execCommand('copy');
 
