@@ -457,56 +457,6 @@ class CTAN(Base):
         )
 
 
-class Ubuntu(Base):
-    @staticmethod
-    def build_template(mirror):
-        repos = ['', '-updates', '-security', '-backports']
-        release = sh('lsb_release -sc')
-        lines = ['deb %s/ubuntu %s%s main multiverse universe restricted\n' % (mirror, release, repo) for repo in repos]
-        tmpl = ''.join(lines)
-        return tmpl
-
-    @staticmethod
-    def name():
-        return 'Ubuntu'
-
-    @staticmethod
-    def is_applicable():
-        return os.path.isfile(
-            '/etc/apt/sources.list') and get_linux_distro() == 'ubuntu'
-
-    @staticmethod
-    def is_online():
-        with open('/etc/apt/sources.list', 'r') as sl:
-            content = sl.read();
-            return content == Ubuntu.build_template('https://' + mirror_root)
-
-    @staticmethod
-    def up():
-        print('This operation will move your current sources.list to sources.on-my-tuna.bak.list,\n' + \
-              'and use TUNA apt source instead.')
-        if not user_prompt():
-            return False
-        if os.path.isfile('/etc/apt/sources.list'):
-            sh('cp /etc/apt/sources.list /etc/apt/sources.oh-my-tuna.bak.list')
-        with open('/etc/apt/sources.list', 'w') as sl:
-            sl.write(Ubuntu.build_template('https://' + mirror_root))
-        return True
-
-    @staticmethod
-    def down():
-        print('This operation will copy sources.on-my-tuna.bak.list to sources.list if there is one,\n' + \
-              'otherwise build a new sources.list with archive.ubuntu.com as its mirror root.')
-        if not user_prompt():
-            return False
-        if os.path.isfile('/etc/apt/sources.oh-my-tuna.bak.list'):
-            if sh('cp /etc/apt/sources.oh-my-tuna.bak.list /etc/apt/sources.list') is not None:
-                return True
-        with open('/etc/apt/sources.list', 'w') as sl:
-            sl.write(Ubuntu.build_template('http://archive.ubuntu.com'))
-        return True
-
-
 class Anaconda(Base):
     url_free = 'https://%s/anaconda/pkgs/free/' % mirror_root
     url_main = 'https://%s/anaconda/pkgs/main/' % mirror_root
@@ -547,7 +497,82 @@ class Anaconda(Base):
         return True
 
 
-MODULES = [ArchLinux, Homebrew, CTAN, Ubuntu, Pypi, Anaconda]
+class Debian(Base):
+    default_source = 'http://archive.ubuntu.com'
+
+    @staticmethod
+    def build_template(mirror):
+        repos = ['', '-updates']
+        release = sh('lsb_release -sc')
+        lines = ['%s %s/debian/ %s%s main contrib non-free\n' % (repoType, mirror, release, repo)
+                    for repo in repos
+                    for repoType in ['deb', 'deb-src']]
+        tmpl = ''.join(lines)
+        return tmpl
+
+    @staticmethod
+    def name():
+        return 'Debian'
+
+    @staticmethod
+    def is_applicable():
+        return os.path.isfile(
+            '/etc/apt/sources.list') and get_linux_distro() == 'debian'
+
+    @classmethod
+    def is_online(cls):
+        with open('/etc/apt/sources.list', 'r') as sl:
+            content = sl.read();
+            return content == cls.build_template('https://' + mirror_root)
+
+    @classmethod
+    def up(cls):
+        print('This operation will move your current sources.list to sources.on-my-tuna.bak.list,\n' + \
+              'and use TUNA apt source instead.')
+        if not user_prompt():
+            return False
+        if os.path.isfile('/etc/apt/sources.list'):
+            sh('cp /etc/apt/sources.list /etc/apt/sources.oh-my-tuna.bak.list')
+        with open('/etc/apt/sources.list', 'w') as sl:
+            sl.write(cls.build_template('https://' + mirror_root))
+        return True
+
+    @classmethod
+    def down(cls):
+        print('This operation will copy sources.on-my-tuna.bak.list to sources.list if there is one,\n' + \
+              'otherwise build a new sources.list with archive.ubuntu.com as its mirror root.')
+        if not user_prompt():
+            return False
+        if os.path.isfile('/etc/apt/sources.oh-my-tuna.bak.list'):
+            if sh('cp /etc/apt/sources.oh-my-tuna.bak.list /etc/apt/sources.list') is not None:
+                return True
+        with open('/etc/apt/sources.list', 'w') as sl:
+            sl.write(cls.build_template(cls.default_source))
+        return True
+
+
+class Ubuntu(Debian):
+    default_source = 'http://archive.ubuntu.com'
+
+    @staticmethod
+    def build_template(mirror):
+        repos = ['', '-updates', '-security', '-backports']
+        release = sh('lsb_release -sc')
+        lines = ['deb %s/ubuntu %s%s main multiverse universe restricted\n' % (mirror, release, repo) for repo in repos]
+        tmpl = ''.join(lines)
+        return tmpl
+
+    @staticmethod
+    def name():
+        return 'Ubuntu'
+
+    @staticmethod
+    def is_applicable():
+        return os.path.isfile(
+            '/etc/apt/sources.list') and get_linux_distro() == 'ubuntu'
+
+
+MODULES = [ArchLinux, Homebrew, CTAN, Pypi, Anaconda, Debian, Ubuntu]
 
 
 def main():
