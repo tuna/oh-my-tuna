@@ -18,6 +18,7 @@
 
 import subprocess
 import os
+import errno
 import argparse
 import re
 import platform
@@ -133,6 +134,16 @@ def remove_env(key):
     else:
         print('Please remove environment variable %s' % key)
         return False
+
+
+def mkdir_p(path):
+    try:
+        os.makedirs(path)
+    except OSError as exc:
+        if exc.errno == errno.EEXIST and os.path.isdir(path):
+            pass
+        else:
+            raise
 
 
 
@@ -259,6 +270,8 @@ class Pypi(Base):
             config.read(config_file)
         if not config.has_section('global'):
             config.add_section('global')
+        if not os.path.isdir(os.path.dirname(config_file)):
+            mkdir_p(os.path.dirname(config_file))
         config.set('global', 'index-url', Pypi.mirror_url)
         with open(config_file, 'w') as f:
             config.write(f)
