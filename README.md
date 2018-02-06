@@ -3,8 +3,33 @@ oh-my-tuna
 
 `oh-my-tuna` is a script for automating using TUNA mirrors when applicable.
 
-Still under construction.
+Usage
+==========================
 
+The simple way:
+```bash
+wget https://rawgit.com/tuna/oh-my-tuna/master/oh-my-tuna.py
+python oh-my-tuna.py
+```
+
+More options:
+```bash
+python oh-my-tuna.py -h
+```
+
+Coverage
+=========================
+ - Anaconda
+ - Arch Linux
+ - CTAN
+ - Homebrew
+ - PyPI
+ - Ubuntu
+ 
+TODO
+========================
+- Debian
+ 
 
 License
 ==========================
