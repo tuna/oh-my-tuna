@@ -511,14 +511,25 @@ class Anaconda(Base):
 
 
 class Debian(Base):
-    default_source = 'http://deb.debian.org'
+    pools = "main contrib non-free"
+    default_sources = {
+            'http://deb.debian.org/debian': ['', '-updates'],
+            'http://security.debian.org/debian-security': ['main', 'contrib', 'non-free'],
+            }
 
     @staticmethod
-    def build_template(mirror):
-        repos = ['', '-updates']
+    def build_mirrorspec():
+        return {
+                'https://' + mirror_root + '/debian': ['', '-updates'],
+                'https://' + mirror_root + '/debian-security': ['/updates'],
+            }
+
+    @classmethod
+    def build_template(cls, mirrorspecs):
         release = sh('lsb_release -sc')
-        lines = ['%s %s/debian/ %s%s main contrib non-free\n' % (repoType, mirror, release, repo)
-                    for repo in repos
+        lines = ['%s %s %s%s %s\n' % (repoType, mirror, release, repo, cls.pools)
+                    for mirror in mirrorspecs
+                    for repo in mirrorspecs[mirror]
                     for repoType in ['deb', 'deb-src']]
         tmpl = ''.join(lines)
         return tmpl
@@ -536,7 +547,7 @@ class Debian(Base):
     def is_online(cls):
         with open('/etc/apt/sources.list', 'r') as sl:
             content = sl.read();
-            return content == cls.build_template('https://' + mirror_root)
+            return content == cls.build_template(cls.build_mirrorspec())
 
     @classmethod
     def up(cls):
@@ -547,7 +558,7 @@ class Debian(Base):
         if os.path.isfile('/etc/apt/sources.list'):
             sh('cp /etc/apt/sources.list /etc/apt/sources.oh-my-tuna.bak.list')
         with open('/etc/apt/sources.list', 'w') as sl:
-            sl.write(cls.build_template('https://' + mirror_root))
+            sl.write(cls.build_template(cls.build_mirrorspec()))
         return True
 
     @classmethod
@@ -560,20 +571,19 @@ class Debian(Base):
             if sh('cp /etc/apt/sources.oh-my-tuna.bak.list /etc/apt/sources.list') is not None:
                 return True
         with open('/etc/apt/sources.list', 'w') as sl:
-            sl.write(cls.build_template(cls.default_source))
+            sl.write(cls.build_template(cls.default_sources))
         return True
 
 
 class Ubuntu(Debian):
-    default_source = 'http://archive.ubuntu.com'
+    default_sources = { 'http://archive.ubuntu.com/ubuntu': ['', '-updates', '-security', '-backports'] }
+    pools = "main multiverse universe restricted"
 
     @staticmethod
-    def build_template(mirror):
-        repos = ['', '-updates', '-security', '-backports']
-        release = sh('lsb_release -sc')
-        lines = ['deb %s/ubuntu %s%s main multiverse universe restricted\n' % (mirror, release, repo) for repo in repos]
-        tmpl = ''.join(lines)
-        return tmpl
+    def build_mirrorspec():
+        return {
+                'https://' + mirror_root + '/ubuntu': ['', '-updates', '-security', '-backports'],
+            }
 
     @staticmethod
     def name():
