@@ -463,24 +463,32 @@ class CTAN(Base):
 
     @staticmethod
     def is_applicable():
-        global is_global
-        if not is_global:
-            return False
+        # Works both in global mode or local mode
         return sh('tlmgr --version') is not None
 
     @staticmethod
     def is_online():
+        global is_global
+        base = "tlmgr"
+        if not is_global:
+            base += " --usermode"
+
         return sh(
-            'tlmgr option repository'
+            '%s option repository' % base
         ) == 'Default package repository (repository): https://mirrors.tuna.tsinghua.edu.cn/CTAN/systems/texlive/tlnet'
 
     @staticmethod
     def up():
+        global is_global
+        base = "tlmgr"
+        if not is_global:
+            base += " --usermode"
+
         return ask_if_change(
             'CTAN mirror',
             'Default package repository (repository): https://mirrors.tuna.tsinghua.edu.cn/CTAN/systems/texlive/tlnet',
-            'tlmgr option repository',
-            'tlmgr option repository https://mirrors.tuna.tsinghua.edu.cn/CTAN/systems/texlive/tlnet'
+            '%s option repository' % base,
+            '%s option repository https://mirrors.tuna.tsinghua.edu.cn/CTAN/systems/texlive/tlnet' % base
         )
 
 
