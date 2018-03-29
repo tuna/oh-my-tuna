@@ -471,6 +471,8 @@ class CTAN(Base):
         global is_global
         base = "tlmgr"
         if not is_global:
+            # Setup usertree first
+            sh("tlmgr init-usertree")
             base += " --usermode"
 
         return sh(
