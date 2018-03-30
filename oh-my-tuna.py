@@ -39,6 +39,7 @@ mirror_root = "mirrors.tuna.tsinghua.edu.cn"
 host_name = "tuna.tsinghua.edu.cn"
 always_yes = False
 verbose = False
+is_global = True
 
 os_release_regex = re.compile(r"^ID=\"?([^\"\n]+)\"?$", re.M)
 
@@ -59,7 +60,7 @@ def sh(command):
             print('$ %s' % command)
         if isinstance(command, str):
             command = command.split()
-        return subprocess.check_output(command).decode('utf-8').rstrip()
+        return subprocess.check_output(command, stderr=subprocess.STDOUT).decode('utf-8').rstrip()
     except Exception as e:
         return None
 
@@ -245,6 +246,10 @@ class Pypi(Base):
 
     @staticmethod
     def is_applicable():
+        global is_global
+        if is_global:
+            # Skip if in global mode
+            return False
         return sh('pip') is not None or sh('pip3') is not None
 
 
@@ -303,6 +308,9 @@ class ArchLinux(Base):
 
     @staticmethod
     def is_applicable():
+        global is_global
+        if not is_global:
+            return False
         return os.path.isfile(
             '/etc/pacman.d/mirrorlist') and get_linux_distro() == 'arch'
 
@@ -391,6 +399,9 @@ class Homebrew(Base):
 
     @staticmethod
     def is_applicable():
+        global is_global
+        if not is_global:
+            return False
         return sh('brew --repo') is not None
 
     @staticmethod
@@ -452,21 +463,34 @@ class CTAN(Base):
 
     @staticmethod
     def is_applicable():
+        # Works both in global mode or local mode
         return sh('tlmgr --version') is not None
 
     @staticmethod
     def is_online():
+        global is_global
+        base = "tlmgr"
+        if not is_global:
+            # Setup usertree first
+            sh("tlmgr init-usertree")
+            base += " --usermode"
+
         return sh(
-            'tlmgr option repository'
+            '%s option repository' % base
         ) == 'Default package repository (repository): https://mirrors.tuna.tsinghua.edu.cn/CTAN/systems/texlive/tlnet'
 
     @staticmethod
     def up():
+        global is_global
+        base = "tlmgr"
+        if not is_global:
+            base += " --usermode"
+
         return ask_if_change(
             'CTAN mirror',
             'Default package repository (repository): https://mirrors.tuna.tsinghua.edu.cn/CTAN/systems/texlive/tlnet',
-            'tlmgr option repository',
-            'tlmgr option repository https://mirrors.tuna.tsinghua.edu.cn/CTAN/systems/texlive/tlnet'
+            '%s option repository' % base,
+            '%s option repository https://mirrors.tuna.tsinghua.edu.cn/CTAN/systems/texlive/tlnet' % base
         )
 
 
@@ -482,12 +506,18 @@ class Anaconda(Base):
 
     @staticmethod
     def is_applicable():
+        # Works both in global mode and local mode
         return sh('conda -V') is not None
 
 
     @staticmethod
     def is_online():
-        channels = sh('conda config --get channels').split('\n')
+        cmd = 'conda config --get channels'
+        global is_global
+        if is_global:
+            cmd += ' --system'
+
+        channels = sh(cmd).split('\n')
         in_channels = 0
         for line in channels:
             if Anaconda.url_free in line:
@@ -499,14 +529,22 @@ class Anaconda(Base):
 
     @staticmethod
     def up():
-        sh ("conda config --add channels %s" % Anaconda.url_free)
-        sh ("conda config --add channels %s" % Anaconda.url_main)
+        basecmd = 'conda config'
+        global is_global
+        if is_global:
+            basecmd += ' --system'
+        sh ("%s --add channels %s" % (basecmd, Anaconda.url_free))
+        sh ("%s --add channels %s" % (basecmd, Anaconda.url_main))
         return True
 
     @staticmethod
     def down():
-        sh ("conda config --remove channels %s" % Anaconda.url_free)
-        sh ("conda config --remove channels %s" % Anaconda.url_main)
+        basecmd = 'conda config'
+        global is_global
+        if is_global:
+            basecmd += ' --system'
+        sh ("%s --remove channels %s" % (basecmd, Anaconda.url_free))
+        sh ("%s --remove channels %s" % (basecmd, Anaconda.url_main))
         return True
 
 
@@ -540,6 +578,9 @@ class Debian(Base):
 
     @staticmethod
     def is_applicable():
+        global is_global
+        if not is_global:
+            return False
         return os.path.isfile(
             '/etc/apt/sources.list') and get_linux_distro() == 'debian'
 
@@ -591,6 +632,9 @@ class Ubuntu(Debian):
 
     @staticmethod
     def is_applicable():
+        global is_global
+        if not is_global:
+            return False
         return os.path.isfile(
             '/etc/apt/sources.list') and get_linux_distro() == 'ubuntu'
 
@@ -614,12 +658,20 @@ def main():
         '--yes',
         help='always answer yes to questions',
         action='store_true')
+    parser.add_argument(
+        '-g',
+        '--global',
+        dest='is_global',
+        help='apply system-wide changes. This option may affect applicability of some modules.',
+        action='store_true')
 
     args = parser.parse_args()
     global verbose
     verbose = args.verbose
     global always_yes
     always_yes = args.yes
+    global is_global
+    is_global = args.is_global
 
     if args.subcommand == 'up':
         for m in MODULES:
