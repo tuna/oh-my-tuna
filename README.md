@@ -12,7 +12,12 @@ wget https://rawgit.com/tuna/oh-my-tuna/master/oh-my-tuna.py
 python oh-my-tuna.py
 ```
 
-More options:
+Change system-wide settings instead of user-wide:
+```bash
+sudo oh-my-tuna.py --global
+```
+
+Get help:
 ```bash
 python oh-my-tuna.py -h
 ```
@@ -26,6 +31,7 @@ Coverage
  - Homebrew
  - PyPI
  - Ubuntu
+ - TeX Live (by tlmgr)
  
 TODO
 ========================
