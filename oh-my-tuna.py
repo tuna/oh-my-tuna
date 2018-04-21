@@ -639,7 +639,52 @@ class Ubuntu(Debian):
             '/etc/apt/sources.list') and get_linux_distro() == 'ubuntu'
 
 
-MODULES = [ArchLinux, Homebrew, CTAN, Pypi, Anaconda, Debian, Ubuntu]
+class CentOS(Base):
+    @staticmethod
+    def name():
+        return 'CentOS'
+
+    @staticmethod
+    def is_applicable():
+        global is_global
+        if not is_global:
+            return False
+        return os.path.isfile(
+            '/etc/yum.repos.d/CentOS-Base.repo') and get_linux_distro() == 'centos'
+
+    @staticmethod
+    def is_online():
+        mirror_re = re.compile(
+            r"baseurl=https://%s/centos/\$releasever/os/\$basearch/\n" %
+            mirror_root, re.M)
+        ml = open('/etc/yum.repos.d/CentOS-Base.repo', 'r')
+        lines = ml.readlines()
+        result = map(lambda l: re.match(mirror_re, l), lines)
+        result = any(result)
+        ml.close()
+        return result
+
+    @staticmethod
+    def up():
+        sh('cp /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.bak')
+        sh(r'sed -i -E s/^#?baseurl=https?:\/\/[^\/]+\/(.*)$/baseurl=https:\/\/%s\/\1/g /etc/yum.repos.d/CentOS-Base.repo' % mirror_root.replace('/', '\/'))
+        sh(r'sed -i -E s/^(mirrorlist=.*)$/#\1/g /etc/yum.repos.d/CentOS-Base.repo')
+
+        return True
+
+    @staticmethod
+    def down():
+        if os.path.isfile('/etc/yum.repos.d/CentOS-Base.repo.bak'):
+            sh('cp /etc/yum.repos.d/CentOS-Base.repo.bak /etc/yum.repos.d/CentOS-Base.repo')
+            return True
+
+
+        sh(r'sed -i -E s/^#(mirrorlist=.*)$/\1/g /etc/yum.repos.d/CentOS-Base.repo')
+        sh(r'sed -i -E s/^(baseurl=.*)$/#\1/g /etc/yum.repos.d/CentOS-Base.repo')
+        return True
+
+
+MODULES = [ArchLinux, Homebrew, CTAN, Pypi, Anaconda, Debian, Ubuntu, CentOS]
 
 
 def main():
