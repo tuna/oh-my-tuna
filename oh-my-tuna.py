@@ -726,7 +726,7 @@ def main():
                     try:
                         result = m.up()
                         if not result:
-                            m.log('Operation cancled', 'w')
+                            m.log('Operation canceled', 'w')
                         else:
                             m.log('Mirror has been activated', 'o')
                     except NotImplementedError:
@@ -742,7 +742,7 @@ def main():
                     try:
                         result = m.down()
                         if not result:
-                            m.log('Operation cancled', 'w')
+                            m.log('Operation canceled', 'w')
                         else:
                             m.log('Mirror has been deactivated', 'o')
                     except NotImplementedError:
