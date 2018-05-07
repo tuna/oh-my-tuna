@@ -8,7 +8,7 @@ Usage
 
 The simple way:
 ```bash
-wget https://rawgit.com/tuna/oh-my-tuna/master/oh-my-tuna.py
+wget https://tuna.moe/oh-my-tuna/oh-my-tuna.py
 python oh-my-tuna.py
 ```
 
