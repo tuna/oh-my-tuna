@@ -14,7 +14,7 @@ python oh-my-tuna.py
 
 Change system-wide settings instead of user-wide:
 ```bash
-sudo oh-my-tuna.py --global
+sudo python oh-my-tuna.py --global
 ```
 
 Get help:
