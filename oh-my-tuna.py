@@ -592,7 +592,7 @@ class Debian(Base):
 
     @classmethod
     def up(cls):
-        print('This operation will move your current sources.list to sources.on-my-tuna.bak.list,\n' + \
+        print('This operation will move your current sources.list to sources.oh-my-tuna.bak.list,\n' + \
               'and use TUNA apt source instead.')
         if not user_prompt():
             return False
@@ -604,7 +604,7 @@ class Debian(Base):
 
     @classmethod
     def down(cls):
-        print('This operation will copy sources.on-my-tuna.bak.list to sources.list if there is one,\n' + \
+        print('This operation will copy sources.oh-my-tuna.bak.list to sources.list if there is one,\n' + \
               'otherwise build a new sources.list with archive.ubuntu.com as its mirror root.')
         if not user_prompt():
             return False
