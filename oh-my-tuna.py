@@ -60,7 +60,7 @@ def sh(command):
             print('$ %s' % command)
         if isinstance(command, str):
             command = command.split()
-        return subprocess.check_output(command, stderr=subprocess.STDOUT).decode('utf-8').rstrip()
+        return subprocess.check_output(command, shell=True, stderr=subprocess.STDOUT).decode('utf-8').rstrip()
     except Exception as e:
         return None
 
