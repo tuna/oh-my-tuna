@@ -317,7 +317,7 @@ class ArchLinux(Base):
     @staticmethod
     def is_online():
         mirror_re = re.compile(
-            r" *Server *= *(http|https)://%s/archlinux/\$repo/os/\$path\n" %
+            r" *Server *= *(http|https)://%s/archlinux/\$repo/os/\$arch\n" %
             mirror_root, re.M)
         ml = open('/etc/pacman.d/mirrorlist', 'r')
         lines = ml.readlines()
@@ -330,10 +330,10 @@ class ArchLinux(Base):
     def up():
         # Match commented or not
         mirror_re = re.compile(
-            r" *(# *)?Server *= *(http|https)://%s/archlinux/\$repo/os/\$path\n"
+            r" *(# *)?Server *= *(http|https)://%s/archlinux/\$repo/os/\$arch\n"
             % mirror_root, re.M)
         banner = '# Generated and managed by the awesome oh-my-tuna\n'
-        target = "Server = https://%s/archlinux/$repo/os/$path\n\n" % mirror_root
+        target = "Server = https://%s/archlinux/$repo/os/$arch\n\n" % mirror_root
 
         print(
             'This operation will insert the following line into the beginning of your pacman mirrorlist:\n%s'
@@ -377,7 +377,7 @@ class ArchLinux(Base):
 
         # Simply remove all matched lines
         mirror_re = re.compile(
-            r" *Server *= *(http|https)://%s/archlinux/\$repo/os/\$path\n" %
+            r" *Server *= *(http|https)://%s/archlinux/\$repo/os/\$arch\n" %
             mirror_root, re.M)
 
         ml = open('/etc/pacman.d/mirrorlist', 'r')
