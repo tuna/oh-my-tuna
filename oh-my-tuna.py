@@ -22,7 +22,6 @@ import errno
 import argparse
 import re
 import platform
-import shlex
 from contextlib import contextmanager
 
 try:
@@ -59,8 +58,8 @@ def sh(command):
     try:
         if verbose:
             print('$ %s' % command)
-        if isinstance(command, str):
-            command = shlex.split(command)
+        if isinstance(command, list):
+            command = ' '.join(command)
         return subprocess.check_output(command, shell=True, stderr=subprocess.STDOUT).decode('utf-8').rstrip()
     except Exception as e:
         return None
