@@ -24,6 +24,7 @@ python oh-my-tuna.py -h
 
 Coverage
 =========================
+ - Anaconda
  - Arch Linux
  - CTAN
  - Debian

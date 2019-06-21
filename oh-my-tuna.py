@@ -494,6 +494,60 @@ class CTAN(Base):
         )
 
 
+class Anaconda(Base):
+    url_free = 'https://%s/anaconda/pkgs/free/' % mirror_root
+    url_main = 'https://%s/anaconda/pkgs/main/' % mirror_root
+
+
+    @staticmethod
+    def name():
+        return "Anaconda"
+
+
+    @staticmethod
+    def is_applicable():
+        # Works both in global mode and local mode
+        return sh('conda -V') is not None
+
+
+    @staticmethod
+    def is_online():
+        cmd = 'conda config --get channels'
+        global is_global
+        if is_global:
+            cmd += ' --system'
+
+        channels = sh(cmd).split('\n')
+        in_channels = 0
+        for line in channels:
+            if Anaconda.url_free in line:
+                in_channels += 1
+            elif Anaconda.url_main in line:
+                in_channels += 1
+        return in_channels == 2
+
+
+    @staticmethod
+    def up():
+        basecmd = 'conda config'
+        global is_global
+        if is_global:
+            basecmd += ' --system'
+        sh ("%s --add channels %s" % (basecmd, Anaconda.url_free))
+        sh ("%s --add channels %s" % (basecmd, Anaconda.url_main))
+        return True
+
+    @staticmethod
+    def down():
+        basecmd = 'conda config'
+        global is_global
+        if is_global:
+            basecmd += ' --system'
+        sh ("%s --remove channels %s" % (basecmd, Anaconda.url_free))
+        sh ("%s --remove channels %s" % (basecmd, Anaconda.url_main))
+        return True
+
+
 class Debian(Base):
     pools = "main contrib non-free"
     default_sources = {
@@ -630,7 +684,7 @@ class CentOS(Base):
         return True
 
 
-MODULES = [ArchLinux, Homebrew, CTAN, Pypi, Debian, Ubuntu, CentOS]
+MODULES = [ArchLinux, Homebrew, CTAN, Pypi, Anaconda, Debian, Ubuntu, CentOS]
 
 
 def main():
