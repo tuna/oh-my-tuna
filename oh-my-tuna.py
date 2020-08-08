@@ -616,23 +616,24 @@ class Debian(Base):
         return True
 
 
+def _get_mirror_suffix():
+    uname = sh('uname -m')
+    no_suffix_list = ['i386', 'i586', 'i686', 'x86_64', 'amd64']
+    if any(map(lambda x: x in uname, no_suffix_list)):
+        return ''
+    else:
+        return '-ports'
+
+
 class Ubuntu(Debian):
-    @staticmethod
-    def get_mirror_suffix():
-        uname = sh('uname -m')
-        no_suffix_list = ['i386', 'i586', 'i686', 'x86_64', 'amd64']
-        if any(map(lambda x: x in uname, no_suffix_list)):
-            return ''
-        else:
-            return '-ports'
          
-    default_sources = { 'http://archive.ubuntu.com/ubuntu' + get_mirror_suffix(): ['', '-updates', '-security', '-backports'] }
+    default_sources = { 'http://archive.ubuntu.com/ubuntu' + _get_mirror_suffix(): ['', '-updates', '-security', '-backports'] }
     pools = "main multiverse universe restricted"
 
     @staticmethod
     def build_mirrorspec():
         return {
-                'https://' + mirror_root + '/ubuntu' + get_mirror_suffix(): ['', '-updates', '-security', '-backports'],
+                'https://' + mirror_root + '/ubuntu' + _get_mirror_suffix(): ['', '-updates', '-security', '-backports'],
             }
 
     @staticmethod
