@@ -626,7 +626,6 @@ def _get_mirror_suffix():
 
 
 class Ubuntu(Debian):
-         
     default_sources = { 'http://archive.ubuntu.com/ubuntu' + _get_mirror_suffix(): ['', '-updates', '-security', '-backports'] }
     pools = "main multiverse universe restricted"
 
