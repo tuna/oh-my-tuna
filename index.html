@@ -36,6 +36,10 @@
         text-decoration: none;
         font-size: 0;
       }
+	  
+	  .comment {
+		color: #8f8f8f;
+	  }
 
       .brand {
         color: #586e75;
@@ -56,7 +60,7 @@
       }
 
       .term {
-        width: 500px;
+        width: 520px;
         padding: 10px 0 5px 0;
         border-radius: 2px;
         background: #002b36;
@@ -216,7 +220,7 @@
           for(var i = 0; i<notifs.length; ++i)
             notifs[i].classList.remove('open');
           timeoutId = null;
-        }, 1000);
+        }, 2000);
 
         for(var i = 0; i<notifs.length; ++i)
           notifs[i].classList.add('open');
@@ -272,14 +276,23 @@
           <div class="term-row">
             <strong>wget</strong> https://tuna.moe/oh-my-tuna/oh-my-tuna.py
           </div>
+		  <span class="comment"># For yourself</span>
           <div class="term-row">
             <strong>python</strong> oh-my-tuna.py
           </div>
+		  <span class="comment"># ...or for everyone!</span>
+		  <div class="term-row">
+			<strong>sudo python</strong> oh-my-tuna.py --global
+		  </div>
+		  <span class="comment"># Get some help</span>
+		  <div class="term-row">
+			<strong>python</strong> oh-my-tuna.py -h
+		  </div>
         </div>
       </div>
 
       <div class="copied-notif">
-        Copied! 😘
+        Copied! 😘😘😘
       </div>
     </div>
 
