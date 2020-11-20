@@ -693,7 +693,51 @@ class CentOS(Base):
         return True
 
 
-MODULES = [ArchLinux, Homebrew, CTAN, Pypi, Anaconda, Debian, Ubuntu, CentOS]
+class AOSCOS(Base):
+    @staticmethod
+    def name():
+        return 'AOSC OS'
+
+    @staticmethod
+    def is_applicable():
+        global is_global
+        if not is_global:
+            return False
+        return os.path.isfile(
+            '/var/lib/apt/gen/status.json') and get_linux_distro() == 'aosc'
+
+    @staticmethod
+    def is_online():
+        agl_result = sh('env LC_ALL=C apt-gen-list now')
+        if not agl_result:
+            return None
+        out_re = re.compile(r"mirrors:.* tuna.*", re.M)
+        match = re.findall(out_re, agl_result)
+        return len(match) > 0
+
+    @staticmethod
+    def up():
+        agl_result = sh('env LC_ALL=C apt-gen-list now')
+        if not agl_result:
+            return False
+        out_re = re.compile(r"mirrors: origin$", re.M)
+        match = re.findall(out_re, agl_result)
+        if len(match) > 0:
+            if not sh('env LC_ALL=C apt-gen-list m tuna'):
+                return False
+        else:
+            if not sh('env LC_ALL=C apt-gen-list m +tuna'):
+                return False
+        return True
+
+    @staticmethod
+    def down():
+        if not sh('env LC_ALL=C apt-gen-list m -tuna'):
+            return False
+        return True
+
+
+MODULES = [ArchLinux, Homebrew, CTAN, Pypi, Anaconda, Debian, Ubuntu, CentOS, AOSCOS]
 
 
 def main():
