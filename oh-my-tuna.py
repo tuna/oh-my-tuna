@@ -25,9 +25,9 @@ import platform
 from contextlib import contextmanager
 
 try:
-   input = raw_input
+    input = raw_input
 except NameError:
-   pass
+    pass
 
 try:
     import configparser
@@ -234,7 +234,7 @@ class Pypi(Base):
         if system == 'Darwin':
             return ('$HOME/Library/Application Support/pip/pip.conf', '$HOME/.pip/pip.conf')
         elif system == 'Windows':
-            return ('%APPDATA%\pip\pip.ini', '~\pip\pip.ini')
+            return (r'%APPDATA%\pip\pip.ini', r'~\pip\pip.ini')
         elif system == 'Linux':
             return ('$HOME/.config/pip/pip.conf', '$HOME/.pip/pip.conf')
 
@@ -676,7 +676,7 @@ class CentOS(Base):
     @staticmethod
     def up():
         sh('cp /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.bak')
-        sh(r'sed -i -E s/^#?baseurl=https?:\/\/[^\/]+\/(.*)$/baseurl=https:\/\/%s\/\1/g /etc/yum.repos.d/CentOS-Base.repo' % mirror_root.replace('/', '\/'))
+        sh(r'sed -i -E s/^#?baseurl=https?:\/\/[^\/]+\/(.*)$/baseurl=https:\/\/%s\/\1/g /etc/yum.repos.d/CentOS-Base.repo' % mirror_root.replace('/', r'\/'))
         sh(r'sed -i -E s/^(mirrorlist=.*)$/#\1/g /etc/yum.repos.d/CentOS-Base.repo')
 
         return True
