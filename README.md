@@ -32,6 +32,8 @@ Coverage
  - PyPI
  - Ubuntu
  - TeX Live (by tlmgr)
+ - CentOS
+ - AOSC OS
  
 TODO
 ========================
