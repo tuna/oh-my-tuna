@@ -619,7 +619,7 @@ class Debian(Base):
 def _get_mirror_suffix():
     uname = sh('uname -m')
     no_suffix_list = ['i386', 'i586', 'i686', 'x86_64', 'amd64']
-    if uname == None or any(map(lambda x: x in uname, no_suffix_list)):
+    if any(map(lambda x: x in uname, no_suffix_list)):
         return ''
     else:
         return '-ports'
